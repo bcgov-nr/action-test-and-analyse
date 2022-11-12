@@ -5,23 +5,28 @@ branding:
   color: blue
 
 inputs:
-  ### Required - nothing!
+  ### Core / unit testing
   dir:
     description: App/package directory
     default: .
-  test_cmd:
+  node-version:
+    description: Node version, defaults to 16 (LTS)
+    default: "16"
+  commands:
     description: Command to run unit tests
     default: |
       npm ci
       npm run test:cov
 
-  ### Typical / recommended
+  ### Optional / SonarCloud
   sonar_args:
     # https://docs.sonarcloud.io/advanced-setup/analysis-parameters/
     description: SonarCloud command line arguments
     default: |
       -Dsonar.organization=bcgov-sonarcloud
       -Dsonar.projectKey=bcgov_${{ github.repository }}
+  sonar_comment_token:
+    description: Token for pull request comments, usually secrets.GITHUB_TOKEN
   sonar_token:
     description: Sonar token, project must be using monorepo mode
 
@@ -33,76 +38,78 @@ inputs:
 runs:
   using: composite
   steps:
+    # Shallow clone is faster, but SonarCloud requires a full clone
     - uses: actions/checkout@v3
+      if: (! inputs.sonar_token)
       with:
         repository: ${{ inputs.repository }}
 
-    - name: Get npm cache directory
-      id: npm-cache-dir
-      shell: bash
-      run: |
-        echo "dir=$(npm config get cache)" >> $GITHUB_OUTPUT
-
-    - name: Cache npm cache directory
-      uses: actions/cache@v3
-      with:
-        path: ${{ steps.npm-cache-dir.outputs.dir }}
-        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-node-
-
-    - name: Cache coverage for sonarcloud
-      id: coverage-cache
-      uses: actions/cache@v3
-      with:
-        path: ${{ inputs.dir }}/coverage
-        key: coverage-${{ inputs.dir }}-${{ github.run_number }}
-        restore-keys: |
-          coverage-${{ inputs.dir }}-
-
-    - name: Run Tests
-      shell: bash
-      run: |
-        cd ${{ inputs.dir }}
-        ${{ inputs.test_cmd }}
-
-    ### Optional SonarCloud
-
-    - name: Check for SonarCloud trigger
-      shell: bash
-      id: sonar-check
-      run: |
-        # Trigger SonarCloud if secrets.sonar_token is provided
-        if [ -z "${{ secrets.sonar_token }}" ]; then
-          echo "secrets.sonar_token not detected"
-        else
-          echo "secrets.sonar_token detected!"
-          echo "run=true" >> $GITHUB_OUTPUT
-        fi
-
+    # Shallow clone is faster, but can't be used with SonarCloud
     - uses: actions/checkout@v3
-      if: jobs.sonar-check.outputs.run
+      if: inputs.sonar_token
       with:
         # Disable shallow clone for SonarCloud analysis
         fetch-depth: 0
         repository: ${{ inputs.repository }}
 
-    - name: Restore coverage for analysis
-      if: jobs.sonar-check.outputs.run
-      uses: actions/cache@v3
+    # Setup node and cache dir
+    - uses: actions/setup-node@v3
       with:
-        path: ${{ inputs.dir }}/coverage
-        key: coverage-${{ inputs.dir }}-${{ github.run_number }}
-        restore-keys: |
-          coverage-${{ inputs.dir }}-
+        node-version: ${{ inputs.node-version }}
+    - id: npm-cache-dir
+      shell: bash
+      run: echo "dir=$(npm config get cache)" >> $GITHUB_OUTPUT
+    - uses: actions/cache@v3
+      with:
+        path: ${{ steps.npm-cache-dir.outputs.dir }}
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: ${{ runner.os }}-node-
 
+    # Run tests, hopefully generating coverage for SonarCloud
+    - name: Run Tests
+      shell: bash
+      run: |
+        cd ${{ inputs.dir }}
+        ${{ inputs.commands }}
+
+    ### Optional SonarCloud
+
+    # If sonar_token and sonar_comment_token, then run with comments
     - name: SonarCloud Scan
-      if: jobs.sonar-check.outputs.run
+      if: inputs.sonar_token && inputs.sonar_comment_token
       uses: SonarSource/sonarcloud-github-action@master
       env:
-        # Needed to get PR information, if any
-        GITHUB_TOKEN: ${{ secrets.gh_token }}
-        SONAR_TOKEN: ${{ secrets.sonar_token }}
+        GITHUB_TOKEN: ${{ inputs.sonar_comment_token }}
+        SONAR_TOKEN: ${{ inputs.sonar_token }}
       with:
         projectBaseDir: ${{ inputs.dir }}
-        args: ${{ inputs.sonar_args }}
+        args:
+          -Dsonar.pullrequest.github.summary_comment=true -Dsonar.project.monorepo.enabled=true
+          ${{ inputs.sonar_args }}
+
+    # If sonar_token and not sonar_comment_token, then run without comments
+    - name: SonarCloud Scan
+      if: inputs.sonar_token && ! inputs.sonar_comment_token
+      uses: SonarSource/sonarcloud-github-action@master
+      env:
+        SONAR_TOKEN: ${{ inputs.sonar_token }}
+      with:
+        projectBaseDir: ${{ inputs.dir }}
+        args:
+          -Dsonar.pullrequest.github.summary_comment=false -Dsonar.project.monorepo.enabled=true
+          ${{ inputs.sonar_args }}
+
+    # Fix - Docker takes ownership of files, causing a cleanup fail
+    - shell: bash
+      id: get_uid
+      run: |
+        actions_user_id=`id -u $USER`
+        echo $actions_user_id
+        echo ::set-output name=uid::$actions_user_id
+    - uses: peter-murray/reset-workspace-ownership-action@v1
+      with:
+        user_id: ${{ steps.get_uid.outputs.uid }}
+
+    # Fix - Clone for action.yml and other verifications
+    - name: Checkout Action repo to pass tests
+      uses: actions/checkout@v3
