@@ -1,0 +1,108 @@
+name: Conditional Container Builder with Fallback
+description: Build if trigger conditions are met, else use fallback image
+branding:
+  icon: package
+  color: blue
+
+inputs:
+  ### Required - nothing!
+  dir:
+    description: App/package directory
+    default: .
+  test_cmd:
+    description: Command to run unit tests
+    default: |
+      npm ci
+      npm run test:cov
+
+  ### Typical / recommended
+  sonar_args:
+    # https://docs.sonarcloud.io/advanced-setup/analysis-parameters/
+    description: SonarCloud command line arguments
+    default: |
+      -Dsonar.organization=bcgov-sonarcloud
+      -Dsonar.projectKey=bcgov_${{ github.repository }}
+  sonar_token:
+    description: Sonar token, project must be using monorepo mode
+
+  ### Usually a bad idea / not recommended
+  repository:
+    description: Non-default repository to clone
+    default: ${{ github.repository }}
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/checkout@v3
+      with:
+        repository: ${{ inputs.repository }}
+
+    - name: Get npm cache directory
+      id: npm-cache-dir
+      shell: bash
+      run: |
+        echo "dir=$(npm config get cache)" >> $GITHUB_OUTPUT
+
+    - name: Cache npm cache directory
+      uses: actions/cache@v3
+      with:
+        path: ${{ steps.npm-cache-dir.outputs.dir }}
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+
+    - name: Cache coverage for sonarcloud
+      id: coverage-cache
+      uses: actions/cache@v3
+      with:
+        path: ${{ inputs.dir }}/coverage
+        key: coverage-${{ inputs.dir }}-${{ github.run_number }}
+        restore-keys: |
+          coverage-${{ inputs.dir }}-
+
+    - name: Run Tests
+      shell: bash
+      run: |
+        cd ${{ inputs.dir }}
+        ${{ inputs.test_cmd }}
+
+    ### Optional SonarCloud
+
+    - name: Check for SonarCloud trigger
+      shell: bash
+      id: sonar-check
+      run: |
+        # Trigger SonarCloud if secrets.sonar_token is provided
+        if [ -z "${{ secrets.sonar_token }}" ]; then
+          echo "secrets.sonar_token not detected"
+        else
+          echo "secrets.sonar_token detected!"
+          echo "run=true" >> $GITHUB_OUTPUT
+        fi
+
+    - uses: actions/checkout@v3
+      if: jobs.sonar-check.outputs.run
+      with:
+        # Disable shallow clone for SonarCloud analysis
+        fetch-depth: 0
+        repository: ${{ inputs.repository }}
+
+    - name: Restore coverage for analysis
+      if: jobs.sonar-check.outputs.run
+      uses: actions/cache@v3
+      with:
+        path: ${{ inputs.dir }}/coverage
+        key: coverage-${{ inputs.dir }}-${{ github.run_number }}
+        restore-keys: |
+          coverage-${{ inputs.dir }}-
+
+    - name: SonarCloud Scan
+      if: jobs.sonar-check.outputs.run
+      uses: SonarSource/sonarcloud-github-action@master
+      env:
+        # Needed to get PR information, if any
+        GITHUB_TOKEN: ${{ secrets.gh_token }}
+        SONAR_TOKEN: ${{ secrets.sonar_token }}
+      with:
+        projectBaseDir: ${{ inputs.dir }}
+        args: ${{ inputs.sonar_args }}
