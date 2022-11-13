@@ -1,13 +1,13 @@
-name: Conditional Container Builder with Fallback
-description: Build if trigger conditions are met, else use fallback image
+name: Unit Test and Analysis with SonarCloud
+description: Run unit tests (current node only), can send to SonarCloud
 branding:
-  icon: package
+  icon: check-square
   color: blue
 
 inputs:
   ### Required
   commands:
-    description: Command to run unit tests
+    description: Commands to run unit tests, start with '|' for multi-line
     required: true
   dir:
     description: App/package directory
