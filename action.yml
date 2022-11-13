@@ -5,20 +5,18 @@ branding:
   color: blue
 
 inputs:
-  ### Core / unit testing
-  dir:
-    description: App/package directory
-    default: .
-  node-version:
-    description: Node version, defaults to 16 (LTS)
-    default: "16"
+  ### Required
   commands:
     description: Command to run unit tests
-    default: |
-      npm ci
-      npm run test:cov
+    required: true
+  dir:
+    description: App/package directory
+    required: true
 
-  ### Optional / SonarCloud
+  ### Typical / recommended
+  node_version:
+    description: Node version, defaults to 16 (LTS)
+    default: "16"
   sonar_args:
     # https://docs.sonarcloud.io/advanced-setup/analysis-parameters/
     description: SonarCloud command line arguments
@@ -27,7 +25,7 @@ inputs:
       -Dsonar.projectKey=bcgov_${{ github.repository }}
   sonar_comment_token:
     description: Token for pull request comments, usually secrets.GITHUB_TOKEN
-  sonar_token:
+  sonar_project_token:
     description: Sonar token, project must be using monorepo mode
 
   ### Usually a bad idea / not recommended
@@ -40,13 +38,13 @@ runs:
   steps:
     # Shallow clone is faster, but SonarCloud requires a full clone
     - uses: actions/checkout@v3
-      if: (! inputs.sonar_token)
+      if: (! inputs.sonar_project_token)
       with:
         repository: ${{ inputs.repository }}
 
     # Shallow clone is faster, but can't be used with SonarCloud
     - uses: actions/checkout@v3
-      if: inputs.sonar_token
+      if: inputs.sonar_project_token
       with:
         # Disable shallow clone for SonarCloud analysis
         fetch-depth: 0
@@ -55,7 +53,7 @@ runs:
     # Setup node and cache dir
     - uses: actions/setup-node@v3
       with:
-        node-version: ${{ inputs.node-version }}
+        node-version: ${{ inputs.node_version }}
     - id: npm-cache-dir
       shell: bash
       run: echo "dir=$(npm config get cache)" >> $GITHUB_OUTPUT
@@ -74,25 +72,25 @@ runs:
 
     ### Optional SonarCloud
 
-    # If sonar_token and sonar_comment_token, then run with comments
+    # If sonar_project_token and sonar_comment_token, then run with comments
     - name: SonarCloud Scan
-      if: inputs.sonar_token && inputs.sonar_comment_token
+      if: inputs.sonar_project_token && inputs.sonar_comment_token
       uses: SonarSource/sonarcloud-github-action@master
       env:
         GITHUB_TOKEN: ${{ inputs.sonar_comment_token }}
-        SONAR_TOKEN: ${{ inputs.sonar_token }}
+        SONAR_TOKEN: ${{ inputs.sonar_project_token }}
       with:
         projectBaseDir: ${{ inputs.dir }}
         args:
           -Dsonar.pullrequest.github.summary_comment=true -Dsonar.project.monorepo.enabled=true
           ${{ inputs.sonar_args }}
 
-    # If sonar_token and not sonar_comment_token, then run without comments
+    # If sonar_project_token and not sonar_comment_token, then run without comments
     - name: SonarCloud Scan
-      if: inputs.sonar_token && ! inputs.sonar_comment_token
+      if: inputs.sonar_project_token && ! inputs.sonar_comment_token
       uses: SonarSource/sonarcloud-github-action@master
       env:
-        SONAR_TOKEN: ${{ inputs.sonar_token }}
+        SONAR_TOKEN: ${{ inputs.sonar_project_token }}
       with:
         projectBaseDir: ${{ inputs.dir }}
         args:
