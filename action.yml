@@ -81,7 +81,7 @@ runs:
         SONAR_TOKEN: ${{ inputs.sonar_project_token }}
       with:
         projectBaseDir: ${{ inputs.dir }}
-        args:
+        args: |
           -Dsonar.pullrequest.github.summary_comment=true -Dsonar.project.monorepo.enabled=true
           ${{ inputs.sonar_args }}
 
@@ -93,7 +93,7 @@ runs:
         SONAR_TOKEN: ${{ inputs.sonar_project_token }}
       with:
         projectBaseDir: ${{ inputs.dir }}
-        args:
+        args: |
           -Dsonar.pullrequest.github.summary_comment=false -Dsonar.project.monorepo.enabled=true
           ${{ inputs.sonar_args }}
 
