@@ -75,25 +75,25 @@ runs:
     # If sonar_project_token and sonar_comment_token, then run with comments
     - name: SonarCloud Scan
       if: inputs.sonar_project_token && inputs.sonar_comment_token
-      uses: SonarSource/sonarcloud-github-action@master
+      uses: SonarSource/sonarcloud-github-action@v1.7
       env:
         GITHUB_TOKEN: ${{ inputs.sonar_comment_token }}
         SONAR_TOKEN: ${{ inputs.sonar_project_token }}
       with:
         projectBaseDir: ${{ inputs.dir }}
-        args: |
+        args: >
           -Dsonar.pullrequest.github.summary_comment=true -Dsonar.project.monorepo.enabled=true
           ${{ inputs.sonar_args }}
 
     # If sonar_project_token and not sonar_comment_token, then run without comments
     - name: SonarCloud Scan
       if: inputs.sonar_project_token && ! inputs.sonar_comment_token
-      uses: SonarSource/sonarcloud-github-action@master
+      uses: SonarSource/sonarcloud-github-action@v1.7
       env:
         SONAR_TOKEN: ${{ inputs.sonar_project_token }}
       with:
         projectBaseDir: ${{ inputs.dir }}
-        args: |
+        args: >
           -Dsonar.pullrequest.github.summary_comment=false -Dsonar.project.monorepo.enabled=true
           ${{ inputs.sonar_args }}
 

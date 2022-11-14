@@ -35,7 +35,7 @@ jobs:
             npm run test:cov
           dir: ${{ matrix.dir }}
           repository: bcgov/nr-quickstart-typescript
-          sonar_args: |
+          sonar_args: >
             -Dsonar.exclusions=**/coverage/**,**/node_modules/**
             -Dsonar.organization=bcgov-nr
             -Dsonar.projectKey=bcgov-nr_action-test-and-analyse_${{ matrix.dir }}
