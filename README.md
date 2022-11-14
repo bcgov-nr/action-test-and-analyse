@@ -6,12 +6,14 @@
 
 <!-- Reference-Style link -->
 [SonarCloud]: https://sonarcloud.io
+[Issues]: https://docs.github.com/en/issues/tracking-your-work-with-issues/creating-an-issue
+[Pull Requests]: https://docs.github.com/en/desktop/contributing-and-collaborating-using-github-desktop/working-with-your-remote-repository-on-github-or-github-enterprise/creating-an-issue-or-pull-request
 
 # Unit Test (nodejs), Coverage and Analysis with SonarCloud
 
 This action runs unit tests and optionally runs analysis, including coverage, using [SonarCloud](https://sonarcloud.io).  SonarCloud can be configured to comment on pull requests or stop failing workflows.
 
-Only nodejs (JavaScript, TypeScript) is currently support, with plans for Java next.
+Only nodejs (JavaScript, TypeScript) is currently supported, with plans for Java next.
 
 # Usage
 
@@ -163,6 +165,10 @@ For BC Government projects, please create an [issue for our platform team](https
 After sign up, a token should be available from your project on the [SonarCloud] site.  Multirepo projects (e.g. backend, frontend) will have multiple projects.  Click `Administration > Analysis Method > GitHub Actions (tutorial)` to find yours.
 
 E.g. https://sonarcloud.io/project/configuration?id={<PROJECT>}&analysisMode=GitHubActions
+
+# Feedback
+
+Please contribute your ideas!  [Issues] and [pull requests] are appreciated.
 
 # Acknowledgements
 
