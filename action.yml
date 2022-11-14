@@ -82,7 +82,7 @@ runs:
       with:
         projectBaseDir: ${{ inputs.dir }}
         args: >
-          -Dsonar.pullrequest.github.summary_comment=true -Dsonar.project.monorepo.enabled=true
+          -Dsonar.pullrequest.github.summary_comment=true
           ${{ inputs.sonar_args }}
 
     # If sonar_project_token and not sonar_comment_token, then run without comments
@@ -94,7 +94,7 @@ runs:
       with:
         projectBaseDir: ${{ inputs.dir }}
         args: >
-          -Dsonar.pullrequest.github.summary_comment=false -Dsonar.project.monorepo.enabled=true
+          -Dsonar.pullrequest.github.summary_comment=false
           ${{ inputs.sonar_args }}
 
     # Fix - Docker takes ownership of files, causing a cleanup fail
