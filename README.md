@@ -170,6 +170,6 @@ E.g. https://sonarcloud.io/project/configuration?id={<PROJECT>}&analysisMode=Git
 
 Please contribute your ideas!  [Issues] and [pull requests] are appreciated.
 
-# Acknowledgements
+<!-- # Acknowledgements
 
-This Action is provided courtesty of the Forestry Suite of Applications, part of the Government of British Columbia.
+This Action is provided courtesty of the Forestry Suite of Applications, part of the Government of British Columbia. -->
