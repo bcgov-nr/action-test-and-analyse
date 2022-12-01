@@ -52,6 +52,7 @@ Only nodejs (JavaScript, TypeScript) is currently supported, with plans for Java
     # Sonar project token
     # Available from sonarcloud.io or your organization administrator
     # BCGov i.e. https://github.com/BCDevOps/devops-requests/issues/new/choose
+    # Provide an unpopulated token for pre-setup, section will be skipped
     sonar_project_token:
       description: ${{ secrets.SONAR_TOKEN }}
 
@@ -68,6 +69,8 @@ Only nodejs (JavaScript, TypeScript) is currently supported, with plans for Java
 Run unit tests and provide results to SonarCloud.  This is a full workflow that runs on pull requests, merge to main and workflow_dispatch.  Use a GitHub Action secret to provide ${{ secrets.SONAR_TOKEN }}.
 
 Create or modify a GitHub workflow, like below.  E.g. `./github/workflows/unit-tests.yml`
+
+Note: Provde an unpopulated SONAR_TOKEN until one is provisioned.  SonarCloud will only run once populated, allowing for pre-setup.
 
 ```yaml
 name: Unit Tests and Analysis

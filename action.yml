@@ -26,7 +26,7 @@ inputs:
   sonar_comment_token:
     description: Token for pull request comments, usually secrets.GITHUB_TOKEN
   sonar_project_token:
-    description: Sonar token, project must be using monorepo mode
+    description: Sonar token, provide unpopulated token for pre-setup (will skip)
 
   ### Usually a bad idea / not recommended
   repository:
