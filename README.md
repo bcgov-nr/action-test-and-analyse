@@ -87,7 +87,7 @@ concurrency:
 jobs:
   tests:
     name: Run Unit Tests and Analyse
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: bcgov-nr/action-test-and-analyse@main
         with:
@@ -110,7 +110,7 @@ Run unit tests, but not SonarCloud.
 jobs:
   tests:
     name: Run Unit Tests and Analyse
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: bcgov-nr/action-test-and-analyse@main
         with:
@@ -128,7 +128,7 @@ Unit test and analyze projects in multiple directories in parallel.  This time `
 jobs:
   tests:
     name: Unit Tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         dir: [backend, frontend]
