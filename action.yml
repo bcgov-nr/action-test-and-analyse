@@ -55,7 +55,7 @@ runs:
 
     # SonarCloud uses shallow clone (fetch-depth=0), which is a bit slower/heavier
     - uses: actions/checkout@v3
-      if: inputs.repoClone == "true" || inputs.repoClone == "yes"
+      if: inputs.repoClone || inputs.repoClone == "yes"
       with:
         fetch-depth: steps.inputs.outputs.shallowClone
         repository: ${{ inputs.repository }}
