@@ -23,6 +23,8 @@ inputs:
     default: |
       -Dsonar.organization=bcgov-sonarcloud
       -Dsonar.projectKey=bcgov_${{ github.repository }}
+  sonar_comment_token:
+    description: Token for pull request comments, usually secrets.GITHUB_TOKEN
   sonar_project_token:
     description: Sonar token, provide unpopulated token for pre-setup (will skip)
 
@@ -34,26 +36,18 @@ inputs:
 runs:
   using: composite
   steps:
-    # Process inputs
-    - id: inputs
-      shell: bash
-      run: |
-        # Process inputs
-        if [ -z ${{ inputs.sonar_project_token }} ]; then
-          shallowClone=1
-          sonarCheck=true
-        else
-          shallowClone=0 >> $GITHUB_OUTPUT
-          sonarCheck=false >> $GITHUB_OUTPUT
-        fi
-
-        echo shallowClone=${shallowClone} >> $GITHUB_OUTPUT
-        echo sonarCheck=${sonarCheck} >> $GITHUB_OUTPUT
-
-    # SonarCloud uses shallow clone (fetch-depth=0), which is a bit slower/heavier
+    # Shallow clone is faster, but SonarCloud requires a full clone
     - uses: actions/checkout@v3
+      if: (! inputs.sonar_project_token)
       with:
-        fetch-depth: steps.inputs.outputs.shallowClone
+        repository: ${{ inputs.repository }}
+
+    # Shallow clone is faster, but can't be used with SonarCloud
+    - uses: actions/checkout@v3
+      if: inputs.sonar_project_token
+      with:
+        # Disable shallow clone for SonarCloud analysis
+        fetch-depth: 0
         repository: ${{ inputs.repository }}
 
     # Setup node and cache dir
@@ -78,15 +72,30 @@ runs:
 
     ### Optional SonarCloud
 
-    # If sonar_project_token, then run with comments
+    # If sonar_project_token and sonar_comment_token, then run with comments
     - name: SonarCloud Scan
-      if: inputs.sonar_project_token
+      if: inputs.sonar_project_token && inputs.sonar_comment_token
+      uses: SonarSource/sonarcloud-github-action@v1.8
+      env:
+        GITHUB_TOKEN: ${{ inputs.sonar_comment_token }}
+        SONAR_TOKEN: ${{ inputs.sonar_project_token }}
+      with:
+        projectBaseDir: ${{ inputs.dir }}
+        args: >
+          -Dsonar.pullrequest.github.summary_comment=true
+          ${{ inputs.sonar_args }}
+
+    # If sonar_project_token and not sonar_comment_token, then run without comments
+    - name: SonarCloud Scan
+      if: inputs.sonar_project_token && ! inputs.sonar_comment_token
       uses: SonarSource/sonarcloud-github-action@v1.8
       env:
         SONAR_TOKEN: ${{ inputs.sonar_project_token }}
       with:
         projectBaseDir: ${{ inputs.dir }}
-        args: ${{ inputs.sonar_args }}
+        args: >
+          -Dsonar.pullrequest.github.summary_comment=false
+          ${{ inputs.sonar_args }}
 
     # Fix - Docker takes ownership of files, causing a cleanup fail
     - shell: bash
