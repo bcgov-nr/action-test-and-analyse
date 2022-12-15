@@ -44,18 +44,22 @@ runs:
         # Process inputs
         if [ -z ${{ inputs.sonar_project_token }} ]; then
           shallowClone=1
-          sonarCheck=true
         else
-          shallowClone=0 >> $GITHUB_OUTPUT
-          sonarCheck=false >> $GITHUB_OUTPUT
+          shallowClone=0
+        fi
+
+        if [ ${{ inputs.repoClone }} == "true" ]||[ ${{inputs.repoClone }} == "yes" ]; then
+          repoClone="true"
+        else
+          repoClone="false"
         fi
 
         echo shallowClone=${shallowClone} >> $GITHUB_OUTPUT
-        echo sonarCheck=${sonarCheck} >> $GITHUB_OUTPUT
+        echo repoClone=${repoClone} >> $GITHUB_OUTPUT
 
     # SonarCloud uses shallow clone (fetch-depth=0), which is a bit slower/heavier
     - uses: actions/checkout@v3
-      if: inputs.repoClone || inputs.repoClone == "yes"
+      if: steps.inputs.outputs.repoClone
       with:
         fetch-depth: steps.inputs.outputs.shallowClone
         repository: ${{ inputs.repository }}
@@ -74,17 +78,16 @@ runs:
         restore-keys: ${{ runner.os }}-node-
 
     # Run tests, hopefully generating coverage for SonarCloud
-    - name: Run Tests
-      shell: bash
+    - shell: bash
       run: |
+        # Run tests
         cd ${{ inputs.dir }}
         ${{ inputs.commands }}
 
     ### Optional SonarCloud
 
     # If sonar_project_token, then run with comments
-    - name: SonarCloud Scan
-      if: inputs.sonar_project_token
+    - if: inputs.sonar_project_token
       uses: SonarSource/sonarcloud-github-action@v1.8
       env:
         SONAR_TOKEN: ${{ inputs.sonar_project_token }}
