@@ -46,7 +46,8 @@ runs:
           shallowClone=1 >> $GITHUB_OUTPUT
         fi
 
-        if [ ${{ inputs.repoClone }} =~ (yes true 1) ]; then
+        TRUES=(true yes 1)
+        if [ ${{ inputs.repoClone }} =~ ${TRUES} ]; then
           repoClone="true" >> $GITHUB_OUTPUT
         fi
 
@@ -94,7 +95,7 @@ runs:
       run: |
         actions_user_id=`id -u $USER`
         echo $actions_user_id
-        echo ::set-output name=uid::$actions_user_id
+        echo "uid=${actions_user_id}" >> $GITHUB_OUTPUT
     - uses: peter-murray/reset-workspace-ownership-action@v1
       with:
         user_id: ${{ steps.get_uid.outputs.uid }}
