@@ -28,8 +28,11 @@ inputs:
 
   ### Usually a bad idea / not recommended
   repository:
-    description: Non-default repository to clone
+    description: Non-default repository to clone, defaults to calling/current repository
     default: ${{ github.repository }}
+  repoClone:
+    description: Clone or not, defaults to true (yes, do clone)
+    default: "true"
 
 runs:
   using: composite
@@ -52,6 +55,7 @@ runs:
 
     # SonarCloud uses shallow clone (fetch-depth=0), which is a bit slower/heavier
     - uses: actions/checkout@v3
+      if: inputs.repoClone == "true" || inputs.repoClone == "yes"
       with:
         fetch-depth: steps.inputs.outputs.shallowClone
         repository: ${{ inputs.repository }}
