@@ -17,7 +17,7 @@ concurrency:
 jobs:
   tests:
     name: Unit Tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         dir: [backend, frontend]
