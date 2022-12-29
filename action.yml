@@ -52,45 +52,42 @@ runs:
       shell: bash
       run: |
         set -x
-        # # Process inputs and vars
-        # if [ -z "${{ inputs.sonar_comment_token }}" ]; then
-        #   comment="false" >> $GITHUB_OUTPUT
-        # else
-        #   comment="true" >> $GITHUB_OUTPUT
-        # fi
+        # Process inputs and vars
+        if [ -z "${{ inputs.sonar_comment_token }}" ]; then
+          comment="false" >> $GITHUB_OUTPUT
+        else
+          comment="true" >> $GITHUB_OUTPUT
+        fi
 
         # User for workstation ownership reset/fix
         echo "uid=$(id -u ${USER})" >> $GITHUB_OUTPUT
 
-        # # Always trigger if input not provided
-        # if [ -z "${{ inputs.triggers }}" ]; then
-        #   triggered=true >> $GITHUB_OUTPUT
-        #   exit 0
-        # fi
+        # Always trigger if input not provided
+        if [ -z "${{ inputs.triggers }}" ]; then
+          triggered=true >> $GITHUB_OUTPUT
+          exit 0
+        fi
 
-        # # Run git diff against provided triggers
-        # TRIGGERS=${{ inputs.triggers }}
-        # while read -r check; do
-        #   for t in "${TRIGGERS[@]}"; do
-        #     if [[ "${check}" =~ "${t}" ]]; then
-        #         echo "Triggers matched against changed files"
-        #         echo -e "${t}\n --> ${check}"
-        #         echo "triggered=true" >> $GITHUB_OUTPUT
-        #         exit 0
-        #     fi
-        #   done
-        # done < <(git diff origin/${{ inputs.diff_branch }} --name-only)
+        # Run git diff against provided triggers
+        TRIGGERS=${{ inputs.triggers }}
+        while read -r check; do
+          for t in "${TRIGGERS[@]}"; do
+            if [[ "${check}" =~ "${t}" ]]; then
+                echo "Triggers matched against changed files"
+                echo -e "${t}\n --> ${check}"
+                echo "triggered=true" >> $GITHUB_OUTPUT
+                exit 0
+            fi
+          done
+        done < <(git diff origin/${{ inputs.diff_branch }} --name-only)
 
-        # # If at this point, no triggers have matched changes
-        # echo "Triggers not matched against changed files"
-        # echo "triggered=false" >> $GITHUB_OUTPUT
-        echo "comment=true" >> $GITHUB_OUTPUT
-        echo "node_version=true" >> $GITHUB_OUTPUT
-        echo "triggered=true" >> $GITHUB_OUTPUT
+        # If at this point, no triggers have matched changes
+        echo "Triggers not matched against changed files"
+        echo "triggered=false" >> $GITHUB_OUTPUT
 
     # Skip message
-    - if: steps.variables.outputs.triggered != 'true'
-      shell: bash
+    # - if: steps.variables.outputs.triggered != 'true'
+    - shell: bash
       run: |
         # Steps skipped
         echo "comment=$comment"
