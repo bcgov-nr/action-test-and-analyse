@@ -62,7 +62,7 @@ runs:
         echo "uid=$(id -u ${USER})" >> $GITHUB_OUTPUT
 
         # Always trigger if input not provided
-        if [ -z ${{ inputs.triggers }} ]; then
+        if [ -z "${{ inputs.triggers }}" ]; then
           triggered="true" >> $GITHUB_OUTPUT
           exit 0
         fi
