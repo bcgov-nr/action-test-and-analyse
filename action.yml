@@ -96,6 +96,13 @@ runs:
         echo "uid=$uid"
         echo "Triggers did not fire, steps are being skipped"
 
+    - shell: bash
+      run: |
+        export FOO=bar
+        echo "::set-env name=FOO::$FOO"
+    - shell: bash
+      run: echo $FOO
+
     # Setup and cache dir
     - if: steps.variables.outputs.triggered == 'true'
       uses: actions/setup-node@v3
