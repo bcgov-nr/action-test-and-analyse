@@ -84,6 +84,13 @@ runs:
         echo "Triggers not matched against changed files"
         echo "triggered=false" >> $GITHUB_OUTPUT
 
+    # Skip message
+    - if: steps.vars.outputs.triggered != 'true'
+      shell: bash
+      run: |
+        # Steps skipped
+        echo "Triggers did not fire, steps are being skipped"
+
     # Setup and cache dir
     - if: steps.vars.outputs.triggered == 'true'
       uses: actions/setup-node@v3
