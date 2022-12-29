@@ -99,7 +99,7 @@ runs:
     - shell: bash
       run: |
         export FOO=bar
-        echo "::set-env name=FOO::$FOO"
+        echo "FOO=$FOO" >> $GITHUB_OUTPUT
     - shell: bash
       run: echo $FOO
 
