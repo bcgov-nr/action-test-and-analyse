@@ -24,10 +24,8 @@ jobs:
         include:
           - dir: backend
             token: SONAR_TOKEN_BACKEND
-            triggers: ('./backend')
           - dir: frontend
             token: SONAR_TOKEN_FRONTEND
-            triggers: ('./frontend')
     steps:
       - uses: actions/checkout@v3
       - uses: ./
@@ -43,4 +41,3 @@ jobs:
             -Dsonar.projectKey=bcgov-nr_action-test-and-analyse_${{ matrix.dir }}
           sonar_comment_token: ${{ secrets.github_token }}
           sonar_project_token: ${{ secrets[matrix.token] }}
-          triggers: ${{ matrix.triggers }}
