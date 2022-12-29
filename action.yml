@@ -51,6 +51,7 @@ runs:
     - id: vars
       shell: bash
       run: |
+        set -x
         # Process inputs and vars
         if [ -z ${{ inputs.sonar_comment_token }} ]; then
           comment="false" >> $GITHUB_OUTPUT
@@ -63,7 +64,7 @@ runs:
 
         # Always trigger if input not provided
         if [ -z "${{ inputs.triggers }}" ]; then
-          triggered="true" >> $GITHUB_OUTPUT
+          triggered=true >> $GITHUB_OUTPUT
           exit 0
         fi
 
@@ -89,6 +90,7 @@ runs:
       shell: bash
       run: |
         # Steps skipped
+        echo "triggered=${{ steps.vars.outputs.triggered }}"
         echo "Triggers did not fire, steps are being skipped"
 
     # Setup and cache dir
