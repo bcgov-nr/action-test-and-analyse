@@ -28,7 +28,7 @@ inputs:
   sonar_project_token:
     description: Sonar token, default is empty, which skips Sonar steps
   triggers:
-    description: Paths used to trigger a test; e.g. ('./backend/', './frontend/)
+    description: Paths used to trigger a test, defaults to always triggering; e.g. ('./backend/', './frontend/)
 
   ### Usually a bad idea / not recommended
   diff_branch:
@@ -48,7 +48,7 @@ runs:
         repository: ${{ inputs.repository }}
 
     # Process inputs
-    - id: inputs
+    - id: vars
       shell: bash
       run: |
         # Process inputs and vars
@@ -60,6 +60,12 @@ runs:
 
         # User for workstation ownership reset/fix
         echo "uid=$(id -u ${USER})" >> $GITHUB_OUTPUT
+
+        # Always trigger if input not provided
+        if [ -z ${{ inputs.triggers }} ]; then
+          triggered="true" >> $GITHUB_OUTPUT
+          exit 0
+        fi
 
         # Run git diff against provided triggers
         TRIGGERS=${{ inputs.triggers }}
@@ -79,15 +85,15 @@ runs:
         echo "triggered=false" >> $GITHUB_OUTPUT
 
     # Setup and cache dir
-    - if: steps.inputs.outputs.triggered == 'true'
+    - if: steps.vars.outputs.triggered == 'true'
       uses: actions/setup-node@v3
       with:
         node-version: ${{ inputs.node_version }}
-    - if: steps.inputs.outputs.triggered == 'true'
+    - if: steps.vars.outputs.triggered == 'true'
       id: npm-cache-dir
       shell: bash
       run: echo "dir=$(npm config get cache)" >> $GITHUB_OUTPUT
-    - if: steps.inputs.outputs.triggered == 'true'
+    - if: steps.vars.outputs.triggered == 'true'
       uses: actions/cache@v3
       with:
         path: ${{ steps.npm-cache-dir.outputs.dir }}
@@ -95,7 +101,7 @@ runs:
         restore-keys: ${{ runner.os }}-node-
 
     # Run tests, hopefully generating coverage for SonarCloud
-    - if: steps.inputs.outputs.triggered == 'true'
+    - if: steps.vars.outputs.triggered == 'true'
       name: Run Tests
       shell: bash
       run: |
@@ -106,7 +112,7 @@ runs:
 
     # If sonar_project_token and sonar_comment_token, then run with comments
     - name: SonarCloud Scan
-      if: steps.inputs.outputs.triggered == 'true' && inputs.sonar_project_token
+      if: steps.vars.outputs.triggered == 'true' && inputs.sonar_project_token
       uses: SonarSource/sonarcloud-github-action@v1.8
       env:
         GITHUB_TOKEN: ${{ inputs.sonar_comment_token }}
@@ -114,14 +120,14 @@ runs:
       with:
         projectBaseDir: ${{ inputs.dir }}
         args: >
-          -Dsonar.pullrequest.github.summary_comment=${{ steps.inputs.outputs.comment }}
+          -Dsonar.pullrequest.github.summary_comment=${{ steps.vars.outputs.comment }}
           ${{ inputs.sonar_args }}
 
     # Fix - Docker takes ownership of files, causing a cleanup fail
-    - if: steps.inputs.outputs.triggered == 'true' && inputs.sonar_project_token
+    - if: steps.vars.outputs.triggered == 'true' && inputs.sonar_project_token
       uses: peter-murray/reset-workspace-ownership-action@v1
       with:
-        user_id: ${{ steps.inputs.outputs.uid }}
+        user_id: ${{ steps.vars.outputs.uid }}
 
     # Fix - Clone for action.yml and other verifications
     - name: Checkout Action repo to pass tests
