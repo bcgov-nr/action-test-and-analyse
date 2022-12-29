@@ -26,9 +26,14 @@ inputs:
   sonar_comment_token:
     description: Token for pull request comments, usually secrets.GITHUB_TOKEN
   sonar_project_token:
-    description: Sonar token, provide unpopulated token for pre-setup (will skip)
+    description: Sonar token, default is empty, which skips Sonar steps
+  triggers:
+    description: Paths used to trigger a test; e.g. ('./backend/', './frontend/)
 
   ### Usually a bad idea / not recommended
+  diff_branch:
+    default: ${{ github.event.repository.default_branch }}
+    description: Branch to diff against, uses GitHub's default (usually main)
   repository:
     description: Non-default repository to clone
     default: ${{ github.repository }}
@@ -36,35 +41,62 @@ inputs:
 runs:
   using: composite
   steps:
-    # Shallow clone is faster, but SonarCloud requires a full clone
+    # SonarCloud requires shallow clone (fetch-depth=0), which is a bit slower/heavier
     - uses: actions/checkout@v3
-      if: (! inputs.sonar_project_token)
       with:
-        repository: ${{ inputs.repository }}
-
-    # Shallow clone is faster, but can't be used with SonarCloud
-    - uses: actions/checkout@v3
-      if: inputs.sonar_project_token
-      with:
-        # Disable shallow clone for SonarCloud analysis
         fetch-depth: 0
         repository: ${{ inputs.repository }}
 
-    # Setup node and cache dir
-    - uses: actions/setup-node@v3
+    # Process inputs
+    - id: inputs
+      shell: bash
+      run: |
+        # Process inputs and vars
+        if [ -z ${{ inputs.sonar_comment_token }} ]; then
+          comment="false" >> $GITHUB_OUTPUT
+        else
+          comment="true" >> $GITHUB_OUTPUT
+        fi
+
+        # User for workstation ownership reset/fix
+        echo "uid=$(id -u ${USER})" >> $GITHUB_OUTPUT
+
+        # Run git diff against provided triggers
+        TRIGGERS=${{ inputs.triggers }}
+        while read -r check; do
+          for t in "${TRIGGERS[@]}"; do
+            if [[ "${check}" =~ "${t}" ]]; then
+                echo "Triggers matched against changed files"
+                echo -e "${t}\n --> ${check}"
+                echo "triggered=true" >> $GITHUB_OUTPUT
+                exit 0
+            fi
+          done
+        done < <(git diff origin/${{ inputs.diff_branch }} --name-only)
+
+        # If at this point, no triggers have matched changes
+        echo "Triggers not matched against changed files"
+        echo "triggered=false" >> $GITHUB_OUTPUT
+
+    # Setup and cache dir
+    - if: steps.inputs.outputs.triggered
+      uses: actions/setup-node@v3
       with:
         node-version: ${{ inputs.node_version }}
-    - id: npm-cache-dir
+    - if: steps.inputs.outputs.triggered
+      id: npm-cache-dir
       shell: bash
       run: echo "dir=$(npm config get cache)" >> $GITHUB_OUTPUT
-    - uses: actions/cache@v3
+    - if: steps.inputs.outputs.triggered
+      uses: actions/cache@v3
       with:
         path: ${{ steps.npm-cache-dir.outputs.dir }}
         key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
         restore-keys: ${{ runner.os }}-node-
 
     # Run tests, hopefully generating coverage for SonarCloud
-    - name: Run Tests
+    - if: steps.inputs.outputs.triggered
+      name: Run Tests
       shell: bash
       run: |
         cd ${{ inputs.dir }}
@@ -74,7 +106,7 @@ runs:
 
     # If sonar_project_token and sonar_comment_token, then run with comments
     - name: SonarCloud Scan
-      if: inputs.sonar_project_token && inputs.sonar_comment_token
+      if: steps.inputs.outputs.triggered && inputs.sonar_project_token
       uses: SonarSource/sonarcloud-github-action@v1.8
       env:
         GITHUB_TOKEN: ${{ inputs.sonar_comment_token }}
@@ -82,30 +114,14 @@ runs:
       with:
         projectBaseDir: ${{ inputs.dir }}
         args: >
-          -Dsonar.pullrequest.github.summary_comment=true
-          ${{ inputs.sonar_args }}
-
-    # If sonar_project_token and not sonar_comment_token, then run without comments
-    - name: SonarCloud Scan
-      if: inputs.sonar_project_token && ! inputs.sonar_comment_token
-      uses: SonarSource/sonarcloud-github-action@v1.8
-      env:
-        SONAR_TOKEN: ${{ inputs.sonar_project_token }}
-      with:
-        projectBaseDir: ${{ inputs.dir }}
-        args: >
-          -Dsonar.pullrequest.github.summary_comment=false
+          -Dsonar.pullrequest.github.summary_comment=${{ steps.inputs.outputs.comment }}
           ${{ inputs.sonar_args }}
 
     # Fix - Docker takes ownership of files, causing a cleanup fail
-    - shell: bash
-      id: get_uid
-      run: |
-        # User for workstation ownership reset/fix
-        echo "uid=$(id -u ${USER})" >> $GITHUB_OUTPUT
-    - uses: peter-murray/reset-workspace-ownership-action@v1
+    - if: steps.inputs.outputs.triggered && inputs.sonar_project_token
+      uses: peter-murray/reset-workspace-ownership-action@v1
       with:
-        user_id: ${{ steps.get_uid.outputs.uid }}
+        user_id: ${{ steps.inputs.outputs.uid }}
 
     # Fix - Clone for action.yml and other verifications
     - name: Checkout Action repo to pass tests
