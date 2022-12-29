@@ -101,9 +101,8 @@ runs:
     - shell: bash
       id: get_uid
       run: |
-        actions_user_id=`id -u $USER`
-        echo $actions_user_id
-        echo ::set-output name=uid::$actions_user_id
+        # User for workstation ownership reset/fix
+        echo "uid=$(id -u ${USER})" >> $GITHUB_OUTPUT
     - uses: peter-murray/reset-workspace-ownership-action@v1
       with:
         user_id: ${{ steps.get_uid.outputs.uid }}
