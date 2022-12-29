@@ -93,10 +93,10 @@ runs:
       shell: bash
       run: |
         # Steps skipped
-        echo "comment=${{ steps.variables.outputs.comment }}"
-        echo "node_version=${{ inputs.node_version }}"
-        echo "triggered=${{ steps.variables.outputs.triggered }}"
-        echo "uid=${{ steps.variables.outputs.uid }}"
+        echo "comment=$comment"
+        echo "node_version=$node_version"
+        echo "triggered=$triggered"
+        echo "uid=$uid"
         echo "Triggers did not fire, steps are being skipped"
 
     # Setup and cache dir
