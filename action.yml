@@ -87,11 +87,15 @@ runs:
 
     # Skip message
     # - if: steps.variables.outputs.triggered != 'true'
-    - shell: bash
+    - env:
+        comment: ${{ steps.variables.outputs.comment }}
+        triggered: ${{ steps.variables.outputs.triggered }}
+        uid: ${{ steps.variables.outputs.uid }}
+      shell: bash
       run: |
         # Steps skipped
         echo "comment=$comment"
-        echo "node_version=$node_version"
+        echo "node_version=${{ inputs.node_version }}"
         echo "triggered=$triggered"
         echo "uid=$uid"
         echo "Triggers did not fire, steps are being skipped"
