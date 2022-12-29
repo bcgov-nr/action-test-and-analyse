@@ -24,8 +24,10 @@ jobs:
         include:
           - dir: backend
             token: SONAR_TOKEN_BACKEND
+            triggers: ('./backend')
           - dir: frontend
             token: SONAR_TOKEN_FRONTEND
+            triggers: ('./frontend')
     steps:
       - uses: actions/checkout@v3
       - uses: ./
