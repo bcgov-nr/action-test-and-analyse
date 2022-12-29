@@ -53,7 +53,7 @@ runs:
       run: |
         set -x
         # Process inputs and vars
-        if [ -z ${{ inputs.sonar_comment_token }} ]; then
+        if [ -z "${{ inputs.sonar_comment_token }}" ]; then
           comment="false" >> $GITHUB_OUTPUT
         else
           comment="true" >> $GITHUB_OUTPUT
@@ -90,6 +90,8 @@ runs:
       shell: bash
       run: |
         # Steps skipped
+        echo "comment=${{ steps.vars.outputs.comment }}"
+        echo "node_version=${{ inputs.node_version }}"
         echo "triggered=${{ steps.vars.outputs.triggered }}"
         echo "Triggers did not fire, steps are being skipped"
 
