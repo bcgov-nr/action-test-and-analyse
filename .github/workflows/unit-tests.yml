@@ -31,7 +31,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: ./
         with:
-          node_version: "18.16.0"
+          node_version: "16"
           commands: |
             npm ci
             npm run test:cov
