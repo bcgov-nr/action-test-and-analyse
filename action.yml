@@ -9,6 +9,7 @@ inputs:
   commands:
     description: Commands to run unit tests, start with '|' for multi-line
     required: true
+
   dir:
     description: App/package directory
     required: true
@@ -17,16 +18,22 @@ inputs:
   node_version:
     description: Node version, defaults to 16 (LTS)
     default: "16"
+
   sonar_args:
     # https://docs.sonarcloud.io/advanced-setup/analysis-parameters/
     description: SonarCloud command line arguments
     default: |
       -Dsonar.organization=bcgov-sonarcloud
       -Dsonar.projectKey=bcgov_${{ github.repository }}
+
   sonar_comment_token:
     description: Token for pull request comments, usually secrets.GITHUB_TOKEN
+
   sonar_project_token:
     description: Sonar token, provide unpopulated token for pre-setup (will skip)
+
+  triggers:
+    description: Paths used to trigger a build; e.g. ('./backend/' './frontend/)
 
   ### Usually a bad idea / not recommended
   repository:
@@ -49,6 +56,41 @@ runs:
         # Disable shallow clone for SonarCloud analysis
         fetch-depth: 0
         repository: ${{ inputs.repository }}
+
+    # Process variables and inputs
+    - id: vars
+      shell: bash
+      run: |
+        # Expand for inputs and variables
+
+        # Triggers
+        TRIGGERS=${{ inputs.triggers }}
+        if [ -z "${TRIGGERS}" ]; then
+          echo "Triggers omitted, so always test"
+          echo "triggered=true" >> $GITHUB_OUTPUT
+          exit 0
+        else
+          echo "Processing triggers"
+          git fetch origin "${{ inputs.diff_branch }}"
+          while read -r check; do
+            for t in "${TRIGGERS[@]}"; do
+              if [[ "${check}" =~ "${t}" ]]; then
+                  echo -e "Triggered: ${t}\n --> ${check}"
+                  echo "triggered=true" >> $GITHUB_OUTPUT
+                  exit 0
+              fi
+            done
+          done < <(git diff origin/"${{ inputs.diff_branch }}" --name-only)
+        fi
+        echo "Triggers not matched, testing skipped"
+
+    # Exit successfully if provided triggers did not fire
+    - name: Deploy
+      if: steps.vars.outputs.triggered
+      shell: bash
+      run: |
+        # Existing with success - triggers provided, but not matched
+        exit 0
 
     # Setup node and cache dir
     - uses: actions/setup-node@v3
