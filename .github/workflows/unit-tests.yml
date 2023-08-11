@@ -18,6 +18,20 @@ jobs:
   tests:
     name: Unit Tests
     runs-on: ubuntu-22.04
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_DB: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
     strategy:
       matrix:
         dir: [backend, frontend]
@@ -34,9 +48,13 @@ jobs:
             npm ci
             npm run test:cov
           dir: ${{ matrix.dir }}
+          node_version: "20"
           repository: bcgov/nr-quickstart-typescript
           sonar_args: >
-            -Dsonar.exclusions=**/coverage/**,**/node_modules/**
+            -Dsonar.exclusions=**/coverage/**,**/node_modules/**,**/*spec.ts
+            -Dsonar.javascript.lcov.reportPaths=./coverage/lcov.info
             -Dsonar.organization=bcgov-nr
             -Dsonar.projectKey=bcgov-nr_action-test-and-analyse_${{ matrix.dir }}
+            -Dsonar.sources=src
+            -Dsonar.tests.inclusions=**/*spec.ts
           sonar_project_token: ${{ secrets[matrix.token] }}
