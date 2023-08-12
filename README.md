@@ -58,10 +58,19 @@ Only nodejs (JavaScript, TypeScript) is currently supported, with plans for Java
 
     ### Usually a bad idea / not recommended
 
+    # Overrides the default branch to diff against
+    # Defaults to the default branch, usually `main`
+    diff_branch: ${{ github.event.repository.default_branch }}
+
     # Repository to clone and process
     # Useful for consuming other repos, like in testing
     # Defaults to the current one
     repository: ${{ github.repository }}
+
+    # Branch to clone and process
+    # Useful for consuming non-default branches, like in testing
+    # Defants to empty, cloning the default branch
+    branch: ""
 ```
 
 # Example, Single Directory with SonarCloud Analysis
