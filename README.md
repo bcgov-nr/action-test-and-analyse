@@ -15,7 +15,10 @@ This action runs unit tests and optionally runs analysis, including coverage, us
 
 Only nodejs (JavaScript, TypeScript) is currently supported, with plans for Java next.
 
-**BREAKING CHANGE: node_version has become a required field!**
+**BREAKING CHANGES in v1.0:**
+* **node_version is now required (previously defaulted to 16)**
+* **sonar_comment_token has been removed (ignored by SonarCloud)**
+* **sonar_project_token has been renamed sonar_token**
 
 # Usage
 
@@ -46,11 +49,11 @@ Only nodejs (JavaScript, TypeScript) is currently supported, with plans for Java
         -Dsonar.organization=bcgov-sonarcloud
         -Dsonar.projectKey=bcgov_${{ github.repository }}
 
-    # Sonar project token
+    # Sonar token
     # Available from sonarcloud.io or your organization administrator
     # BCGov i.e. https://github.com/BCDevOps/devops-requests/issues/new/choose
     # Provide an unpopulated token for pre-setup, section will be skipped
-    sonar_project_token:
+    sonar_token:
       description: ${{ secrets.SONAR_TOKEN }}
 
     ### Usually a bad idea / not recommended
@@ -111,7 +114,7 @@ jobs:
             -Dsonar.exclusions=**/coverage/**,**/node_modules/**
             -Dsonar.organization=bcgov-nr
             -Dsonar.projectKey=bcgov-nr_action-test-and-analyse_frontend
-          sonar_project_token: ${{ secrets.SONAR_TOKEN }}
+          sonar_token: ${{ secrets.SONAR_TOKEN }}
 ```
 
 # Example, Single Directory, Only Running Unit Tests (No SonarCloud)
@@ -163,7 +166,7 @@ jobs:
             -Dsonar.exclusions=**/coverage/**,**/node_modules/**
             -Dsonar.organization=bcgov-nr
             -Dsonar.projectKey=bcgov-nr_action-test-and-analyse_${{ matrix.dir }}
-          sonar_project_token: ${{ secrets[matrix.token] }}
+          sonar_token: ${{ secrets[matrix.token] }}
           repository: bcgov/nr-quickstart-typescript
           branch: main
 ```

@@ -26,7 +26,7 @@ inputs:
       -Dsonar.organization=bcgov-sonarcloud
       -Dsonar.projectKey=bcgov_${{ github.repository }}
 
-  sonar_project_token:
+  sonar_token:
     description: Sonar token, provide unpopulated token for pre-setup (will skip)
 
   triggers:
@@ -108,12 +108,12 @@ runs:
 
     ### Optional SonarCloud
 
-    # If sonar_project_token
+    # If sonar_token
     - name: SonarCloud Scan
-      if: inputs.sonar_project_token && steps.vars.outputs.triggered
+      if: inputs.sonar_token && steps.vars.outputs.triggered
       uses: SonarSource/sonarcloud-github-action@v2.0.0
       env:
-        SONAR_TOKEN: ${{ inputs.sonar_project_token }}
+        SONAR_TOKEN: ${{ inputs.sonar_token }}
       with:
         projectBaseDir: ${{ inputs.dir }}
         args: >
