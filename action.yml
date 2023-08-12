@@ -36,6 +36,10 @@ inputs:
     description: Paths used to trigger a build; e.g. ('./backend/' './frontend/)
 
   ### Usually a bad idea / not recommended
+  diff_branch:
+    description: Branch to diff against
+    default: ${{ github.event.repository.default_branch }}
+
   repository:
     description: Non-default repository to clone
     default: ${{ github.repository }}
