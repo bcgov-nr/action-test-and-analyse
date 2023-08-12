@@ -1,3 +1,9 @@
+
+**BREAKING CHANGES in v1.0:**
+* **node_version is now required (previously defaulted to 16)**
+* **sonar_comment_token has been removed (ignored by SonarCloud)**
+* **sonar_project_token has been renamed sonar_token**
+
 <!-- Badges -->
 [![Issues](https://img.shields.io/github/issues/bcgov-nr/action-test-and-analyse)](/../../issues)
 [![Pull Requests](https://img.shields.io/github/issues-pr/bcgov-nr/action-test-and-analyse)](/../../pulls)
@@ -14,11 +20,6 @@
 This action runs unit tests and optionally runs analysis, including coverage, using [SonarCloud](https://sonarcloud.io).  SonarCloud can be configured to comment on pull requests or stop failing workflows.
 
 Only nodejs (JavaScript, TypeScript) is currently supported, with plans for Java next.
-
-**BREAKING CHANGES in v1.0:**
-* **node_version is now required (previously defaulted to 16)**
-* **sonar_comment_token has been removed (ignored by SonarCloud)**
-* **sonar_project_token has been renamed sonar_token**
 
 # Usage
 
