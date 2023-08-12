@@ -46,11 +46,6 @@ Only nodejs (JavaScript, TypeScript) is currently supported, with plans for Java
         -Dsonar.organization=bcgov-sonarcloud
         -Dsonar.projectKey=bcgov_${{ github.repository }}
 
-    # Sonar comment token
-    # Providing this will enable SonarCloud to comment on Pull Requests
-    # $${{ secrets.GITHUB }} or a personal access token can be used
-    sonar_comment_token: ${{ secrets.GITHUB_TOKEN }}
-
     # Sonar project token
     # Available from sonarcloud.io or your organization administrator
     # BCGov i.e. https://github.com/BCDevOps/devops-requests/issues/new/choose
@@ -140,7 +135,7 @@ jobs:
 
 # Example, Matrix / Multiple Directories with Sonar Cloud
 
-Unit test and analyze projects in multiple directories in parallel.  This time `repository` and `sonar_comment_token` are provided.  Please note how secrets must be passed in to composite Actions using the secrets[matrix.variable] syntax.
+Unit test and analyze projects in multiple directories in parallel.  This time `repository` and `branch` are provided.  Please note how secrets must be passed in to composite Actions using the secrets[matrix.variable] syntax.
 
 ```yaml
 jobs:
@@ -163,14 +158,14 @@ jobs:
             npm ci
             npm run test:cov
           dir: ${{ matrix.dir }}
-          repository: bcgov/nr-quickstart-typescript
           node_version: "20"
           sonar_args: |
             -Dsonar.exclusions=**/coverage/**,**/node_modules/**
             -Dsonar.organization=bcgov-nr
             -Dsonar.projectKey=bcgov-nr_action-test-and-analyse_${{ matrix.dir }}
-          sonar_comment_token: ${{ secrets.GITHUB_TOKEN }}
           sonar_project_token: ${{ secrets[matrix.token] }}
+          repository: bcgov/nr-quickstart-typescript
+          branch: main
 ```
 
 # Sonar Project Token
