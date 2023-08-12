@@ -38,6 +38,7 @@ jobs:
         include:
           - dir: backend
             token: SONAR_TOKEN_BACKEND
+            triggers: ('backend/')
           - dir: frontend
             token: SONAR_TOKEN_FRONTEND
     steps:

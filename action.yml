@@ -139,6 +139,8 @@ runs:
           -Dsonar.pullrequest.github.summary_comment=false
           ${{ inputs.sonar_args }}
 
+    ### Cleanup
+
     # Fix - Docker takes ownership of files, causing a cleanup fail
     - shell: bash
       id: get_uid
