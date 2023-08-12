@@ -84,22 +84,17 @@ runs:
         fi
         echo "Triggers not matched, testing skipped"
 
-    # Exit successfully if provided triggers did not fire
-    - name: Exit early
-      if: steps.vars.outputs.triggered == false
-      shell: bash
-      run: |
-        gh run cancel ${{ github.run_id }}
-        gh run watch ${{ github.run_id }}
-
     # Setup node and cache dir
     - uses: actions/setup-node@v3
+      if: steps.vars.outputs.triggered
       with:
         node-version: ${{ inputs.node_version }}
     - id: npm-cache-dir
+      if: steps.vars.outputs.triggered
       shell: bash
       run: echo "dir=$(npm config get cache)" >> $GITHUB_OUTPUT
     - uses: actions/cache@v3
+      if: steps.vars.outputs.triggered
       with:
         path: ${{ steps.npm-cache-dir.outputs.dir }}
         key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
@@ -107,6 +102,7 @@ runs:
 
     # Run tests, hopefully generating coverage for SonarCloud
     - name: Run Tests
+      if: steps.vars.outputs.triggered
       shell: bash
       run: |
         cd ${{ inputs.dir }}
@@ -116,7 +112,7 @@ runs:
 
     # If sonar_project_token and sonar_comment_token, then run with comments
     - name: SonarCloud Scan
-      if: inputs.sonar_project_token && inputs.sonar_comment_token
+      if: inputs.sonar_project_token && inputs.sonar_comment_token && steps.vars.outputs.triggered
       uses: SonarSource/sonarcloud-github-action@v2.0.0
       env:
         GITHUB_TOKEN: ${{ inputs.sonar_comment_token }}
@@ -129,7 +125,7 @@ runs:
 
     # If sonar_project_token and not sonar_comment_token, then run without comments
     - name: SonarCloud Scan
-      if: inputs.sonar_project_token && ! inputs.sonar_comment_token
+      if: inputs.sonar_project_token && ! inputs.sonar_comment_token && steps.vars.outputs.triggered
       uses: SonarSource/sonarcloud-github-action@v2.0.0
       env:
         SONAR_TOKEN: ${{ inputs.sonar_project_token }}
