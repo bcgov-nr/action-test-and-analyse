@@ -83,14 +83,17 @@ runs:
           done < <(git diff origin/"${{ inputs.diff_branch }}" --name-only)
         fi
         echo "Triggers not matched, testing skipped"
+        echo "triggered=true" >> $GITHUB_OUTPUT
 
     # Exit successfully if provided triggers did not fire
-    - name: Deploy
-      if: steps.vars.outputs.triggered
+    - name: Exit early
+      if: steps.vars.outputs.triggered == false
       shell: bash
-      run: |
-        # Existing with success - triggers provided, but not matched
-        exit 0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh run cancel ${{ github.run_id }}
+          gh run watch ${{ github.run_id }}
 
     # Setup node and cache dir
     - uses: actions/setup-node@v3
