@@ -44,5 +44,5 @@ jobs:
             -Dsonar.projectKey=bcgov-nr_action-test-and-analyse_${{ matrix.dir }}
             -Dsonar.sources=src
             -Dsonar.tests.inclusions=**/*spec.ts
-          sonar_project_token: ${{ secrets[matrix.token] }}
+          sonar_token: ${{ secrets[matrix.token] }}
           triggers: ${{ matrix.triggers }}
