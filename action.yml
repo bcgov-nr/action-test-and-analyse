@@ -45,15 +45,7 @@ runs:
   steps:
     # Shallow clone is faster, but SonarCloud requires a full clone
     - uses: actions/checkout@v3
-      if: (! inputs.sonar_project_token)
       with:
-        repository: ${{ inputs.repository }}
-
-    # Shallow clone is faster, but can't be used with SonarCloud
-    - uses: actions/checkout@v3
-      if: inputs.sonar_project_token
-      with:
-        # Disable shallow clone for SonarCloud analysis
         fetch-depth: 0
         repository: ${{ inputs.repository }}
 
