@@ -15,11 +15,13 @@
 [Issues]: https://docs.github.com/en/issues/tracking-your-work-with-issues/creating-an-issue
 [Pull Requests]: https://docs.github.com/en/desktop/contributing-and-collaborating-using-github-desktop/working-with-your-remote-repository-on-github-or-github-enterprise/creating-an-issue-or-pull-request
 
-# Unit Test (nodejs), Coverage and Analysis with SonarCloud
+# Unit Testing (nodejs) with SonarCloud and Conditional Triggers
 
 This action runs unit tests and optionally runs analysis, including coverage, using [SonarCloud](https://sonarcloud.io).  SonarCloud can be configured to comment on pull requests or stop failing workflows.
 
-Only nodejs (JavaScript, TypeScript) is currently supported, with plans for Java next.
+Conditional triggers are used to determine whether tests need to be run.  If triggers are matched, then the appropriate code has changed and should be tested.  Tests always run if no triggers are provided.  Untriggered runs do little other than report a success.
+
+Only nodejs (JavaScript, TypeScript) is supported by this action.  Please see our [Java action](https://github.com/bcgov-nr/action-test-and-analyse-java) or upcoming Python action as required.
 
 # Usage
 
@@ -57,6 +59,10 @@ Only nodejs (JavaScript, TypeScript) is currently supported, with plans for Java
     sonar_token:
       description: ${{ secrets.SONAR_TOKEN }}
 
+    # Bash array to diff for build triggering
+    # Optional, defaults to nothing, which forces a build
+    triggers: ('frontend/')
+
     ### Usually a bad idea / not recommended
 
     # Overrides the default branch to diff against
@@ -77,6 +83,8 @@ Only nodejs (JavaScript, TypeScript) is currently supported, with plans for Java
 # Example, Single Directory with SonarCloud Analysis
 
 Run unit tests and provide results to SonarCloud.  This is a full workflow that runs on pull requests, merge to main and workflow_dispatch.  Use a GitHub Action secret to provide ${{ secrets.SONAR_TOKEN }}.
+
+The specified triggers will be used to decide whether this job runs tests and analysis or just exists successfully.
 
 Create or modify a GitHub workflow, like below.  E.g. `./github/workflows/unit-tests.yml`
 
@@ -116,11 +124,12 @@ jobs:
             -Dsonar.organization=bcgov-nr
             -Dsonar.projectKey=bcgov-nr_action-test-and-analyse_frontend
           sonar_token: ${{ secrets.SONAR_TOKEN }}
+          triggers: ('frontend/' 'charts/frontend')
 ```
 
-# Example, Single Directory, Only Running Unit Tests (No SonarCloud)
+# Example, Only Running Unit Tests (No SonarCloud), No Triggers
 
-Run unit tests, but not SonarCloud.
+No triggers are provided so unit tests will always run.  SonarCloud is skipped.
 
 ```yaml
 jobs:
@@ -137,7 +146,7 @@ jobs:
           node_version: "20"
 ```
 
-# Example, Matrix / Multiple Directories with Sonar Cloud
+# Example, Matrix / Multiple Directories with Sonar Cloud and Triggers
 
 Unit test and analyze projects in multiple directories in parallel.  This time `repository` and `branch` are provided.  Please note how secrets must be passed in to composite Actions using the secrets[matrix.variable] syntax.
 
@@ -152,8 +161,10 @@ jobs:
         include:
           - dir: backend
             token: SONAR_TOKEN_BACKEND
+            triggers: ('frontend/' 'charts/frontend')
           - dir: frontend
             token: SONAR_TOKEN_FRONTEND
+            triggers: ('backend/' 'charts/backend')
     steps:
       - uses: actions/checkout@v3
       - uses: bcgov-nr/action-test-and-analyse@main
@@ -168,6 +179,7 @@ jobs:
             -Dsonar.organization=bcgov-nr
             -Dsonar.projectKey=bcgov-nr_action-test-and-analyse_${{ matrix.dir }}
           sonar_token: ${{ secrets[matrix.token] }}
+          triggers: ${{ matrix.triggers }}
           repository: bcgov/nr-quickstart-typescript
           branch: main
 ```
