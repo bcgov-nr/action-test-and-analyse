@@ -43,6 +43,10 @@ inputs:
   repository:
     description: Non-default repository to clone
     default: ${{ github.repository }}
+  
+  branch:
+    description: Optionally, specify a different branch to clone
+    default: ""
 
 runs:
   using: composite
@@ -52,6 +56,7 @@ runs:
       with:
         fetch-depth: 0
         repository: ${{ inputs.repository }}
+        ref: ${{ inputs.branch }}
 
     # Process variables and inputs
     - id: vars
