@@ -16,8 +16,8 @@ inputs:
 
   ### Typical / recommended
   node_version:
-    description: Node version, defaults to 16 (LTS)
-    default: "16"
+    description: Node version to use
+    required: true
 
   sonar_args:
     # https://docs.sonarcloud.io/advanced-setup/analysis-parameters/

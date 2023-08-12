@@ -15,6 +15,8 @@ This action runs unit tests and optionally runs analysis, including coverage, us
 
 Only nodejs (JavaScript, TypeScript) is currently supported, with plans for Java next.
 
+**BREAKING CHANGE: node_version has become a required field!**
+
 # Usage
 
 ```yaml
@@ -31,11 +33,11 @@ Only nodejs (JavaScript, TypeScript) is currently supported, with plans for Java
     # Project/app directory
     dir: frontend
 
-    ### Typical / recommended
-
     # Node.js version
-    # Defaults to 16 (LTS)
-    node_version: "16"
+    # BREAKING CHANGE: previously defaulted to 16 (LTS)
+    node_version: "20"
+
+    ### Typical / recommended
 
     # Sonar arguments
     # https://docs.sonarcloud.io/advanced-setup/analysis-parameters/
@@ -109,6 +111,7 @@ jobs:
             npm ci
             npm run test:cov
           dir: frontend
+          node_version: "20"
           sonar_args: |
             -Dsonar.exclusions=**/coverage/**,**/node_modules/**
             -Dsonar.organization=bcgov-nr
@@ -132,6 +135,7 @@ jobs:
             npm ci
             npm run test:cov
           dir: frontend
+          node_version: "20"
 ```
 
 # Example, Matrix / Multiple Directories with Sonar Cloud
@@ -160,6 +164,7 @@ jobs:
             npm run test:cov
           dir: ${{ matrix.dir }}
           repository: bcgov/nr-quickstart-typescript
+          node_version: "20"
           sonar_args: |
             -Dsonar.exclusions=**/coverage/**,**/node_modules/**
             -Dsonar.organization=bcgov-nr
