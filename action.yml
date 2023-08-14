@@ -14,11 +14,11 @@ inputs:
     description: App/package directory
     required: true
 
-  ### Typical / recommended
   node_version:
     description: Node version to use
     required: true
 
+  ### Typical / recommended
   sonar_args:
     # https://docs.sonarcloud.io/advanced-setup/analysis-parameters/
     description: SonarCloud command line arguments
@@ -59,6 +59,13 @@ runs:
       shell: bash
       run: |
         # Warnings for breaking changes
+
+        # node_version now required
+        if [ -z "${{ inputs.node_version }}" ]; then
+          echo -e "\nnode_version now required.  Previous default: 16."
+          echo -e "\n\tAction: add a node_version parameter\n"
+          exit 1
+        fi
 
         # sonar_project_token renamed sonar_token
         if [ ! -z "${{ inputs.sonar_project_token }}" ]; then
