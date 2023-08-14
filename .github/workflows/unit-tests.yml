@@ -35,7 +35,7 @@ jobs:
             npm ci
             npm run test:cov
           dir: ${{ matrix.dir }}
-          node_version: "20"
+          # node_version: "20"
           repository: bcgov/nr-quickstart-typescript
           sonar_args: >
             -Dsonar.exclusions=**/coverage/**,**/node_modules/**,**/*spec.ts
@@ -44,5 +44,5 @@ jobs:
             -Dsonar.projectKey=bcgov-nr_action-test-and-analyse_${{ matrix.dir }}
             -Dsonar.sources=src
             -Dsonar.tests.inclusions=**/*spec.ts
-          sonar_project_token: ${{ secrets[matrix.token] }}
+          sonar_token: ${{ secrets[matrix.token] }}
           triggers: ${{ matrix.triggers }}
