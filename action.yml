@@ -54,6 +54,32 @@ runs:
         fetch-depth: 0
         repository: ${{ inputs.repository }}
         ref: ${{ inputs.branch }}
+    
+    - name: Warnings for breaking changes
+      shell: bash
+      run: |
+        # Warnings for breaking changes
+
+        # node_version became mandatory
+        if [ ! -z "${{ inputs.node_version }}" ]; then
+          echo -e "\nnode_version now required.  Previous default: 16."
+          echo -e "\n\tAction: add a node_version parameter\n"
+          exit 1
+        fi
+
+        # sonar_project_token renamed sonar_token
+        if [ ! -z "${{ inputs.sonar_project_token }}" ]; then
+          echo -e "\nsonar_project_token renamed.  Please correct this and try again."
+          echo -e "\n\tAction: rename sonar_project_token to sonar_token\n"
+          exit 1
+        fi
+
+        #
+        if [ ! -z "${{ inputs.sonar_comment_token }}" ]; then
+          echo -e "\nsonar_comment_token deprecated.  Please correct this and try again."
+          echo -e "\n\tAction: remove sonar_comment_token parameter\n"
+          exit 1
+        fi
 
     # Process variables and inputs
     - id: vars
