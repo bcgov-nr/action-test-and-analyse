@@ -99,7 +99,7 @@ runs:
         echo "triggered=true" >> $GITHUB_OUTPUT
 
         # Run/trigger conditions
-        if [[ ! "${T_EVENTS[@]}" =~ "${{ github.event_name }}" ]]
+        if [[ ! "${T_EVENTS}" =~ "${{ github.event_name }}" ]]
         then
           # Event doesn't match on type, so fire
           echo "Event is not in (${T_EVENTS[@}), so always test"
