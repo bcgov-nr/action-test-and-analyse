@@ -46,7 +46,7 @@ inputs:
     default: ""
 
   triggers_event:
-    description: Events (array) to pair with triggers, default = ["pull request"]
+    description: Events (array) to use with triggers; e.g. ("pull_request" "push" "workflow_dispatch")
     default: "('pull_request')"
 
 runs:

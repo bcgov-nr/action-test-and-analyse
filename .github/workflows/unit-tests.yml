@@ -20,8 +20,11 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        dir: [backend, frontend]
+        dir: [database, backend, frontend]
         include:
+          - dir: database
+            triggers: ('database')
+            triggers_event: ('push')
           - dir: backend
             token: SONAR_TOKEN_BACKEND
             triggers: ('backend/')
