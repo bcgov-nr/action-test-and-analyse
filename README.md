@@ -54,7 +54,7 @@ Only nodejs (JavaScript, TypeScript) is supported by this action.  Please see ou
 
     # Sonar token
     # Available from sonarcloud.io or your organization administrator
-    # BCGov i.e. https://github.com/BCDevOps/devops-requests/issues/new/choose
+    # BCGov uses https://github.com/BCDevOps/devops-requests/issues/new/choose
     # Provide an unpopulated token for pre-setup, section will be skipped
     sonar_token:
       description: ${{ secrets.SONAR_TOKEN }}
@@ -78,6 +78,11 @@ Only nodejs (JavaScript, TypeScript) is supported by this action.  Please see ou
     # Useful for consuming non-default branches, like in testing
     # Defants to empty, cloning the default branch
     branch: ""
+
+    # Bash array of events for limiting triggers, otherwise trigger automatically
+    # E.g. ("pull_request" "push" "workflow_dispatch")
+    # Defaults to only using triggers with pull requests
+    triggers_event: "('pull_request')"
 ```
 
 # Example, Single Directory with SonarCloud Analysis
