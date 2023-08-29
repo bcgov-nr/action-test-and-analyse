@@ -1,4 +1,4 @@
-name: Unit Tests and Analysis
+name: Tests
 
 on:
   pull_request:
@@ -16,17 +16,26 @@ concurrency:
 
 jobs:
   tests:
-    name: Unit Tests
+    name: Tests
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        dir: [backend, frontend]
+        name: [backend, frontend-merge, frontend-pr]
         include:
-          - dir: backend
+          - name: backend
+            dir: backend
             token: SONAR_TOKEN_BACKEND
             triggers: ('backend/')
-          - dir: frontend
+            triggers_event: ('pull_request')
+          - name: frontend-merge
+            dir: frontend
+            triggers: ('.')
+            triggers_event: ('pull_request')
+          - name: frontend-pr
+            dir: frontend
             token: SONAR_TOKEN_FRONTEND
+            triggers: ('.')
+            triggers_event: ('push')
     steps:
       - uses: actions/checkout@v3
       - uses: ./
@@ -36,7 +45,7 @@ jobs:
             npm run test:cov
           dir: ${{ matrix.dir }}
           node_version: "20"
-          repository: bcgov/nr-quickstart-typescript
+          repository: bcgov/quickstart-openshift
           sonar_args: >
             -Dsonar.exclusions=**/coverage/**,**/node_modules/**,**/*spec.ts
             -Dsonar.javascript.lcov.reportPaths=./coverage/lcov.info
@@ -46,3 +55,4 @@ jobs:
             -Dsonar.tests.inclusions=**/*spec.ts
           sonar_token: ${{ secrets[matrix.token] }}
           triggers: ${{ matrix.triggers }}
+          triggers_event: ${{ matrix.triggers_event }}
