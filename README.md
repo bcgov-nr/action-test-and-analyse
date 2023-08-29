@@ -180,7 +180,7 @@ jobs:
             -Dsonar.projectKey=bcgov-nr_action-test-and-analyse_${{ matrix.dir }}
           sonar_token: ${{ secrets[matrix.token] }}
           triggers: ${{ matrix.triggers }}
-          repository: bcgov/nr-quickstart-typescript
+          repository: bcgov/quickstart-openshift
           branch: main
 ```
 

@@ -30,7 +30,7 @@ inputs:
     description: Sonar token, provide unpopulated token for pre-setup (will skip)
 
   triggers:
-    description: Paths used to trigger a build; e.g. ('./backend/' './frontend/)
+    description: Paths (array) used to trigger a build; e.g. ('./backend/' './frontend/)
 
   ### Usually a bad idea / not recommended
   diff_branch:
@@ -45,9 +45,9 @@ inputs:
     description: Non-default branch to clone (used for testing this action)
     default: ""
 
-  triggers_limited:
-    description: Limit triggers to PRs; always fire on merge, cronjob, dispatch, etc.
-    default: true
+  triggers_event:
+    description: Events (array) to pair with triggers, default = ["pull request"]
+    default: "('pull_request')"
 
 runs:
   using: composite
@@ -89,18 +89,28 @@ runs:
     - id: vars
       shell: bash
       run: |
-        # Expand for inputs and variables
+        # Triggers and conditions
 
-        # Triggers
+        # Arrays must be stored first
         TRIGGERS=${{ inputs.triggers }}
+        T_EVENTS=${{ inputs.triggers_event }}
+
+        # Default to triggered=true
         echo "triggered=true" >> $GITHUB_OUTPUT
-        if "${{ github.event_name != 'pull_request' }}" && "${{ inputs.triggers_limited }}"; then
-          echo "Not a pull request, so always test"
+
+        # Run/trigger conditions
+        if [[ ! "${T_EVENTS[@]}" =~ "${{ github.event_name }}" ]]
+        then
+          # Event doesn't match on type, so fire
+          echo "Event is not in (${T_EVENTS[@}), so always test"
           exit 0
-        elif [ -z "${TRIGGERS}" ]; then
+        elif [ -z "${TRIGGERS}" ]
+        then
+          # Triggers omitted, so fire
           echo "Triggers omitted, so always test"
           exit 0
         else
+          # Check triggers against a git diff
           echo "Processing triggers"
           git fetch origin "${{ inputs.diff_branch }}"
           while read -r check; do
@@ -112,6 +122,8 @@ runs:
             done
           done < <(git diff origin/"${{ inputs.diff_branch }}" --name-only)
         fi
+
+        # Conditions not met, do not fire
         echo "Triggers not matched, testing skipped"
         echo "triggered=false" >> $GITHUB_OUTPUT
 
@@ -154,7 +166,7 @@ runs:
 
     ### Cleanup
 
-    # Fix - Docker takes ownership of files, causing a cleanup fail
+    # Fix - Docker can take file ownership, causing a cleanup fail
     - shell: bash
       if: steps.vars.outputs.triggered == 'true'
       id: get_uid
