@@ -199,6 +199,10 @@ After sign up, a token should be available from your project on the [SonarCloud]
 
 E.g. https://sonarcloud.io/project/configuration?id={<PROJECT>}&analysisMode=GitHubActions
 
+# Triggers and Triggers_Event
+
+Triggers are used to limit test running to only appropriate files are changed.  This is generally not desirable outside of pull requests, so `triggers_event` defaults to `("pull_request")`.  Override this behaviour by specifying a bash array using any of the many, many [event types GitHub provides](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#push), e.g. `("branch_protection_rule" "workflow_dispatch" "push")`.
+
 # Feedback
 
 Please contribute your ideas!  [Issues] and [pull requests] are appreciated.
