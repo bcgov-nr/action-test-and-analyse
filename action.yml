@@ -110,15 +110,15 @@ runs:
 
     # Setup node and cache dir
     - uses: actions/setup-node@v3
-      if: steps.vars.outputs.triggered
+      if: steps.vars.outputs.triggered == "true"
       with:
         node-version: ${{ inputs.node_version }}
     - id: npm-cache-dir
-      if: steps.vars.outputs.triggered
+      if: steps.vars.outputs.triggered == "true"
       shell: bash
       run: echo "dir=$(npm config get cache)" >> $GITHUB_OUTPUT
     - uses: actions/cache@v3
-      if: steps.vars.outputs.triggered
+      if: steps.vars.outputs.triggered == "true"
       with:
         path: ${{ steps.npm-cache-dir.outputs.dir }}
         key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
@@ -126,7 +126,7 @@ runs:
 
     # Run tests, hopefully generating coverage for SonarCloud
     - name: Run Tests
-      if: steps.vars.outputs.triggered
+      if: steps.vars.outputs.triggered == "true"
       shell: bash
       run: |
         cd ${{ inputs.dir }}
@@ -136,7 +136,7 @@ runs:
 
     # If sonar_token
     - name: SonarCloud Scan
-      if: inputs.sonar_token && steps.vars.outputs.triggered
+      if: inputs.sonar_token && steps.vars.outputs.triggered == "true"
       uses: SonarSource/sonarcloud-github-action@v2.0.0
       env:
         SONAR_TOKEN: ${{ inputs.sonar_token }}
@@ -149,13 +149,13 @@ runs:
 
     # Fix - Docker takes ownership of files, causing a cleanup fail
     - shell: bash
-      if: steps.vars.outputs.triggered
+      if: steps.vars.outputs.triggered == "true"
       id: get_uid
       run: |
         # User for workstation ownership reset/fix
         echo "uid=$(id -u ${USER})" >> $GITHUB_OUTPUT
     - uses: peter-murray/reset-workspace-ownership-action@v1
-      if: steps.vars.outputs.triggered
+      if: steps.vars.outputs.triggered == "true"
       with:
         user_id: ${{ steps.get_uid.outputs.uid }}
 
