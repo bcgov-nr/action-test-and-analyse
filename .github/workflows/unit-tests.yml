@@ -54,3 +54,4 @@ jobs:
             -Dsonar.tests.inclusions=**/*spec.ts
           sonar_token: ${{ secrets[matrix.token] }}
           triggers: ${{ matrix.triggers }}
+          triggers_event: ${{ matrix.triggers_event }}
