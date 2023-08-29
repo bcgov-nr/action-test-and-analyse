@@ -20,19 +20,19 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        dir: [backend, frontend, frontend-merge]
+        name: [backend, frontend-merge, frontend-pr]
         include:
           - name: backend
             dir: backend
             token: SONAR_TOKEN_BACKEND
             triggers: ('backend/')
+          - name: frontend-merge
+            dir: frontend
+            triggers: ('.')
+            triggers_event: ('pull_request')
           - name: frontend-pr
             dir: frontend
             token: SONAR_TOKEN_FRONTEND
-            triggers: ('.')
-            triggers_event: ('pull_request')
-          - name: frontend
-            dir: frontend-merge
             triggers: ('.')
             triggers_event: ('push')
     steps:
