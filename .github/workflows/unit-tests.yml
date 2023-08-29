@@ -23,7 +23,7 @@ jobs:
         dir: [database, backend, frontend]
         include:
           - dir: database
-            triggers: ('database')
+            triggers: ('.')
             triggers_event: ('push')
           - dir: backend
             token: SONAR_TOKEN_BACKEND
