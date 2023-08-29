@@ -15,9 +15,9 @@
 [Issues]: https://docs.github.com/en/issues/tracking-your-work-with-issues/creating-an-issue
 [Pull Requests]: https://docs.github.com/en/desktop/contributing-and-collaborating-using-github-desktop/working-with-your-remote-repository-on-github-or-github-enterprise/creating-an-issue-or-pull-request
 
-# Unit Testing (nodejs) with SonarCloud and Conditional Triggers
+# Test and Analyze with Triggers and SonarCloud
 
-This action runs unit tests and optionally runs analysis, including coverage, using [SonarCloud](https://sonarcloud.io).  SonarCloud can be configured to comment on pull requests or stop failing workflows.
+This action runs tests, dependent on triggers, optionally sending results and coverage to [SonarCloud](https://sonarcloud.io).  Test and SonarCloud can be configured to comment on pull requests or stop failing workflows.
 
 Conditional triggers are used to determine whether tests need to be run.  If triggers are matched, then the appropriate code has changed and should be tested.  Tests always run if no triggers are provided.  Untriggered runs do little other than report a success.
 
@@ -30,7 +30,7 @@ Only nodejs (JavaScript, TypeScript) is supported by this action.  Please see ou
   with:
     ### Required
 
-    # Commands to run unit tests
+    # Commands to run tests
     # Please configure your app to generate coverage (coverage/lcov.info)
     commands: |
       npm ci
@@ -87,16 +87,16 @@ Only nodejs (JavaScript, TypeScript) is supported by this action.  Please see ou
 
 # Example, Single Directory with SonarCloud Analysis
 
-Run unit tests and provide results to SonarCloud.  This is a full workflow that runs on pull requests, merge to main and workflow_dispatch.  Use a GitHub Action secret to provide ${{ secrets.SONAR_TOKEN }}.
+Run tests and provide results to SonarCloud.  This is a full workflow that runs on pull requests, merge to main and workflow_dispatch.  Use a GitHub Action secret to provide ${{ secrets.SONAR_TOKEN }}.
 
 The specified triggers will be used to decide whether this job runs tests and analysis or just exists successfully.
 
-Create or modify a GitHub workflow, like below.  E.g. `./github/workflows/unit-tests.yml`
+Create or modify a GitHub workflow, like below.  E.g. `./github/workflows/tests.yml`
 
 Note: Provde an unpopulated SONAR_TOKEN until one is provisioned.  SonarCloud will only run once populated, allowing for pre-setup.
 
 ```yaml
-name: Unit Tests and Analysis
+name: Test and Analyze
 
 on:
   pull_request:
@@ -114,7 +114,7 @@ concurrency:
 
 jobs:
   tests:
-    name: Run Unit Tests and Analyse
+    name: Test and Analyze
     runs-on: ubuntu-22.04
     steps:
       - uses: bcgov-nr/action-test-and-analyse@main
@@ -132,14 +132,14 @@ jobs:
           triggers: ('frontend/' 'charts/frontend')
 ```
 
-# Example, Only Running Unit Tests (No SonarCloud), No Triggers
+# Example, Only Running Tests (No SonarCloud), No Triggers
 
-No triggers are provided so unit tests will always run.  SonarCloud is skipped.
+No triggers are provided so tests will always run.  SonarCloud is skipped.
 
 ```yaml
 jobs:
   tests:
-    name: Run Unit Tests and Analyse
+    name: Test and Analyze
     runs-on: ubuntu-22.04
     steps:
       - uses: bcgov-nr/action-test-and-analyse@main
@@ -153,12 +153,12 @@ jobs:
 
 # Example, Matrix / Multiple Directories with Sonar Cloud and Triggers
 
-Unit test and analyze projects in multiple directories in parallel.  This time `repository` and `branch` are provided.  Please note how secrets must be passed in to composite Actions using the secrets[matrix.variable] syntax.
+Test and analyze projects in multiple directories in parallel.  This time `repository` and `branch` are provided.  Please note how secrets must be passed in to composite Actions using the secrets[matrix.variable] syntax.
 
 ```yaml
 jobs:
   tests:
-    name: Unit Tests
+    name: Test and Analyze
     runs-on: ubuntu-22.04
     strategy:
       matrix:

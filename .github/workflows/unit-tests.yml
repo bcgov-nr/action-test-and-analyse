@@ -1,4 +1,4 @@
-name: Unit Tests and Analysis
+name: Tests
 
 on:
   pull_request:
@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   tests:
-    name: Unit Tests
+    name: Tests
     runs-on: ubuntu-22.04
     strategy:
       matrix:

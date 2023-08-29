@@ -1,5 +1,5 @@
-name: Unit Test and Analysis with SonarCloud
-description: Run unit tests (current node only), can send to SonarCloud
+name: Test and Analyze with Triggers and SonarCloud
+description: Run node tests based on triggers, optional SonarCloud
 branding:
   icon: check-square
   color: blue
@@ -7,7 +7,7 @@ branding:
 inputs:
   ### Required
   commands:
-    description: Commands to run unit tests, start with '|' for multi-line
+    description: Commands to run tests, start with '|' for multi-line
     required: true
 
   dir:
