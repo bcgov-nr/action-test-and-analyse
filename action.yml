@@ -180,5 +180,5 @@ runs:
 
     # Fix - Clone for action.yml and other verifications
     - name: Checkout Action repo to pass tests
-      if: inputs.repository != github.repository
+      if: always() && inputs.repository != github.repository
       uses: actions/checkout@v3
