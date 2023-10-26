@@ -128,7 +128,7 @@ runs:
         echo "triggered=false" >> $GITHUB_OUTPUT
 
     # Setup node and cache dir
-    - uses: actions/setup-node@v3
+    - uses: actions/setup-node@v4
       if: steps.vars.outputs.triggered == 'true'
       with:
         node-version: ${{ inputs.node_version }}
