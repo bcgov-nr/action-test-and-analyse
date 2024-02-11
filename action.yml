@@ -156,7 +156,7 @@ runs:
     # If sonar_token
     - name: SonarCloud Scan
       if: inputs.sonar_token && steps.vars.outputs.triggered == 'true'
-      uses: SonarSource/sonarcloud-github-action@v2.0.2
+      uses: SonarSource/sonarcloud-github-action@v2.1.1
       env:
         SONAR_TOKEN: ${{ inputs.sonar_token }}
       with:
