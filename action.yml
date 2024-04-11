@@ -102,6 +102,7 @@ runs:
       with:
         node-version: ${{ inputs.node_version }}
         cache: ${{ inputs.cache }}
+        cache-dependency-path: ${{ inputs.dir }}/package-lock.json
 
     # Run tests, hopefully generating coverage for SonarCloud
     - if: steps.diff.outputs.triggered == 'true'
