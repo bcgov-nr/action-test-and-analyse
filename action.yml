@@ -126,6 +126,18 @@ runs:
 
     ### Cleanup
 
+    # Fix - Docker can take file ownership, causing a cleanup fail
+    - shell: bash
+      if: steps.diff.outputs.triggered == 'true'
+      id: get_uid
+      run: |
+        # User for workstation ownership reset/fix
+        echo "uid=$(id -u ${USER})" >> $GITHUB_OUTPUT
+    - uses: peter-murray/reset-workspace-ownership-action@v1
+      if: steps.diff.outputs.triggered == 'true'
+      with:
+        user_id: ${{ steps.get_uid.outputs.uid }}
+
     # Fix - Clone for action.yml and other verifications
     - name: Checkout Action repo to pass tests
       if: always() && inputs.repository != github.repository
