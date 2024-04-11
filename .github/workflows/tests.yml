@@ -34,7 +34,6 @@ jobs:
           - name: frontend-pr
             dir: frontend
             token: SONAR_TOKEN_FRONTEND
-            triggers: ('.')
             triggers_event: ('push')
     steps:
       - uses: actions/checkout@v4

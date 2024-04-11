@@ -52,13 +52,6 @@ inputs:
 runs:
   using: composite
   steps:
-    # Shallow clone is faster, but SonarCloud requires a full clone
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-        repository: ${{ inputs.repository }}
-        ref: ${{ inputs.branch }}
-    
     - name: Warnings for breaking changes
       shell: bash
       run: |
@@ -85,59 +78,31 @@ runs:
           exit 1
         fi
 
-    # Process variables and inputs
-    - id: vars
-      shell: bash
-      run: |
-        # Triggers and conditions
+    # Send triggers to diff action
+    - id: diff
+      uses: bcgov-nr/action-diff-triggers@v0.2.0
+      with:
+        triggers: ${{ inputs.triggers }}
+        diff_branch: ${{ inputs.diff_branch }}
 
-        # Arrays must be stored first
-        TRIGGERS=${{ inputs.triggers }}
-        T_EVENTS=${{ inputs.triggers_event }}
-
-        # Default to triggered=true
-        echo "triggered=true" >> $GITHUB_OUTPUT
-
-        # Run/trigger conditions
-        if [[ ! "${T_EVENTS}" =~ "${{ github.event_name }}" ]]
-        then
-          # Event doesn't match on type, so fire
-          echo "Event not matched, so always test"
-          exit 0
-        elif [ -z "${TRIGGERS}" ]
-        then
-          # Triggers omitted, so fire
-          echo "Triggers omitted, so always test"
-          exit 0
-        else
-          # Check triggers against a git diff
-          echo "Processing triggers"
-          git fetch origin "${{ inputs.diff_branch }}"
-          while read -r check; do
-            for t in "${TRIGGERS[@]}"; do
-              if [[ "${check}" =~ "${t}" ]]; then
-                  echo -e "Triggered: ${t}\n --> ${check}"
-                  exit 0
-              fi
-            done
-          done < <(git diff origin/"${{ inputs.diff_branch }}" --name-only)
-        fi
-
-        # Conditions not met, do not fire
-        echo "Triggers not matched, testing skipped"
-        echo "triggered=false" >> $GITHUB_OUTPUT
+    # Shallow clone is faster, but SonarCloud requires a full clone
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        repository: ${{ inputs.repository }}
+        ref: ${{ inputs.branch }}
 
     # Setup node and cache dir
     - uses: actions/setup-node@v4
-      if: steps.vars.outputs.triggered == 'true'
+      if: steps.diff.outputs.triggered == 'true'
       with:
         node-version: ${{ inputs.node_version }}
     - id: npm-cache-dir
-      if: steps.vars.outputs.triggered == 'true'
+      if: steps.diff.outputs.triggered == 'true'
       shell: bash
       run: echo "dir=$(npm config get cache)" >> $GITHUB_OUTPUT
     - uses: actions/cache@v4
-      if: steps.vars.outputs.triggered == 'true'
+      if: steps.diff.outputs.triggered == 'true'
       with:
         path: ${{ steps.npm-cache-dir.outputs.dir }}
         key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
@@ -145,7 +110,7 @@ runs:
 
     # Run tests, hopefully generating coverage for SonarCloud
     - name: Run Tests
-      if: steps.vars.outputs.triggered == 'true'
+      if: steps.diff.outputs.triggered == 'true'
       shell: bash
       run: |
         cd ${{ inputs.dir }}
@@ -154,8 +119,7 @@ runs:
     ### Optional SonarCloud
 
     # If sonar_token
-    - name: SonarCloud Scan
-      if: inputs.sonar_token && steps.vars.outputs.triggered == 'true'
+    - if: inputs.sonar_token && steps.diff.outputs.triggered == 'true'
       uses: SonarSource/sonarcloud-github-action@v2.1.1
       env:
         SONAR_TOKEN: ${{ inputs.sonar_token }}
@@ -168,13 +132,13 @@ runs:
 
     # Fix - Docker can take file ownership, causing a cleanup fail
     - shell: bash
-      if: steps.vars.outputs.triggered == 'true'
+      if: steps.diff.outputs.triggered == 'true'
       id: get_uid
       run: |
         # User for workstation ownership reset/fix
         echo "uid=$(id -u ${USER})" >> $GITHUB_OUTPUT
     - uses: peter-murray/reset-workspace-ownership-action@v1
-      if: steps.vars.outputs.triggered == 'true'
+      if: steps.diff.outputs.triggered == 'true'
       with:
         user_id: ${{ steps.get_uid.outputs.uid }}
 
