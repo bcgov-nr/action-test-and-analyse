@@ -19,6 +19,10 @@ inputs:
     required: true
 
   ### Typical / recommended
+  cache:
+    description: Package manager for caching; e.g. npm, yarn, pnpm
+    default: npm
+
   sonar_args:
     # https://docs.sonarcloud.io/advanced-setup/analysis-parameters/
     description: SonarCloud command line arguments
@@ -97,23 +101,15 @@ runs:
       if: steps.diff.outputs.triggered == 'true'
       with:
         node-version: ${{ inputs.node_version }}
-    - id: npm-cache-dir
-      if: steps.diff.outputs.triggered == 'true'
-      shell: bash
-      run: echo "dir=$(npm config get cache)" >> $GITHUB_OUTPUT
-    - uses: actions/cache@v4
-      if: steps.diff.outputs.triggered == 'true'
-      with:
-        path: ${{ steps.npm-cache-dir.outputs.dir }}
-        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: ${{ runner.os }}-node-
+        cache: ${{ inputs.cache }}
+        cache-dependency-path: ${{ inputs.dir }}/package-lock.json
 
     # Run tests, hopefully generating coverage for SonarCloud
-    - name: Run Tests
-      if: steps.diff.outputs.triggered == 'true'
+    - if: steps.diff.outputs.triggered == 'true'
       shell: bash
+      working-directory: ${{ inputs.dir }}
       run: |
-        cd ${{ inputs.dir }}
+        # Run Tests
         ${{ inputs.commands }}
 
     ### Optional SonarCloud
