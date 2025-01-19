@@ -115,7 +115,7 @@ concurrency:
 jobs:
   tests:
     name: Test and Analyze
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: bcgov/action-test-and-analyse@main
         with:
@@ -140,7 +140,7 @@ No triggers are provided so tests will always run.  SonarCloud is skipped.
 jobs:
   tests:
     name: Test and Analyze
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: bcgov/action-test-and-analyse@main
         with:
@@ -159,7 +159,7 @@ Test and analyze projects in multiple directories in parallel.  This time `repos
 jobs:
   tests:
     name: Test and Analyze
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         dir: [backend, frontend]
