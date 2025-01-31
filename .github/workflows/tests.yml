@@ -19,9 +19,6 @@ permissions: {}
 jobs:
   tests:
     name: Tests
-    env:
-      SONAR_TOKEN_BACKEND: ${{ secrets.SONAR_TOKEN_BACKEND }}
-      SONAR_TOKEN_FRONTEND: ${{ secrets.SONAR_TOKEN_FRONTEND }}
     runs-on: ubuntu-24.04
     strategy:
       matrix:
@@ -29,7 +26,7 @@ jobs:
         include:
           - name: backend
             dir: backend
-            token: ${{ env.SONAR_TOKEN_BACKEND }}
+            token: ${{ secrets.SONAR_TOKEN_BACKEND }}
             triggers: ('backend/')
             triggers_event: ('pull_request')
           - name: frontend-merge
@@ -38,7 +35,7 @@ jobs:
             triggers_event: ('pull_request')
           - name: frontend-pr
             dir: frontend
-            token: ${{ env.SONAR_TOKEN_FRONTEND }}
+            token: ${{ secrets.SONAR_TOKEN_FRONTEND }}
             triggers_event: ('push')
     steps:
       - uses: actions/checkout@v4
